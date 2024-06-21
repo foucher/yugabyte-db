@@ -1359,6 +1359,7 @@ bool yb_explain_hide_non_deterministic_fields = false;
 bool yb_enable_saop_pushdown = true;
 int yb_toast_catcache_threshold = -1;
 int yb_parallel_range_size = 1024 * 1024;
+bool yb_enable_ddl = true;
 
 //------------------------------------------------------------------------------
 // YB Debug utils.
@@ -2235,6 +2236,10 @@ YBTxnDdlProcessUtility(
 	{
 		if (is_ddl)
 		{
+			if (!yb_enable_ddl)
+				ereport(ERROR,
+						(errcode(ERRCODE_INSUFFICIENT_PRIVILEGE),
+						 errmsg("DDLs are disabled")));
 			if (YBIsDBCatalogVersionMode())
 				/*
 				 * In order to support concurrent non-global-impact DDLs

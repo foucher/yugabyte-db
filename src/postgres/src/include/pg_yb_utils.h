@@ -550,6 +550,11 @@ extern int yb_toast_catcache_threshold;
  */
 extern int yb_parallel_range_size;
 
+/*
+ * Enable DDLs.
+ */
+extern bool yb_enable_ddl;
+
 //------------------------------------------------------------------------------
 // GUC variables needed by YB via their YB pointers.
 extern int StatementTimeout;

@@ -62,7 +62,7 @@ DECLARE_bool(TEST_ysql_disable_transparent_cache_refresh_retry);
 namespace yb {
 namespace pgwrapper {
 
-class PgDdlAtomicityTest : public PgDdlAtomicityTestBase {
+class PgDdlDisableTest : public PgDdlAtomicityTestBase {
  public:
   void UpdateMiniClusterOptions(ExternalMiniClusterOptions* options) override {
     options->extra_master_flags.push_back("--ysql_transaction_bg_task_wait_ms=5000");
@@ -104,7 +104,7 @@ class PgDdlAtomicityTest : public PgDdlAtomicityTestBase {
   }
 };
 
-TEST_F(PgDdlAtomicityTest, TestDatabaseGC) {
+TEST_F(PgDdlDisableTest, TestDatabaseGC) {
   TableName test_name = "test_pgsql";
   auto client = ASSERT_RESULT(cluster_->CreateClient());
   auto conn = ASSERT_RESULT(Connect());
@@ -119,7 +119,7 @@ TEST_F(PgDdlAtomicityTest, TestDatabaseGC) {
   VerifyNamespaceNotExists(client.get(), test_name);
 }
 
-TEST_F(PgDdlAtomicityTest, TestCreateDbAndRestartGC) {
+TEST_F(PgDdlDisableTest, TestCreateDbAndRestartGC) {
   NamespaceName test_name = "test_pgsql";
   auto client = ASSERT_RESULT(cluster_->CreateClient());
   auto conn = ASSERT_RESULT(Connect());
@@ -139,7 +139,7 @@ TEST_F(PgDdlAtomicityTest, TestCreateDbAndRestartGC) {
   VerifyNamespaceNotExists(client.get(), test_name);
 }
 
-TEST_F(PgDdlAtomicityTest, TestIndexTableGC) {
+TEST_F(PgDdlDisableTest, TestIndexTableGC) {
   TableName test_name = "test_pgsql_table";
   TableName test_name_idx = test_name + "_idx";
 
@@ -177,7 +177,7 @@ TEST_F(PgDdlAtomicityTest, TestIndexTableGC) {
 }
 
 TEST_F(
-    PgDdlAtomicityTest, TestRaceIndexDeletionAndReadQueryOnColocatedDB) {
+    PgDdlDisableTest, TestRaceIndexDeletionAndReadQueryOnColocatedDB) {
   TableName table_name = "test_pgsql_table";
   TableName index_name = Format("$0_idx", table_name);
   NamespaceName db_name = "test_db";
@@ -240,7 +240,7 @@ TEST_F(
   threads.Stop();
 }
 
-TEST_F(PgDdlAtomicityTest, FailureRecoveryTestWithAbortedTxn) {
+TEST_F(PgDdlDisableTest, FailureRecoveryTestWithAbortedTxn) {
   // Make TransactionParticipant::Impl::CheckForAbortedTransactions and TabletLoader::Visit deadlock
   // on the mutex. GH issue #15849.
 
@@ -273,7 +273,7 @@ TEST_F(PgDdlAtomicityTest, FailureRecoveryTestWithAbortedTxn) {
 }
 
 // Class for sanity test.
-class PgDdlAtomicitySanityTest : public PgDdlAtomicityTest {
+class PgDdlAtomicitySanityTest : public PgDdlDisableTest {
  protected:
   void UpdateMiniClusterOptions(ExternalMiniClusterOptions* options) override {
     // TODO (#19975): Enable read committed isolation
@@ -1682,7 +1682,7 @@ TEST_F(PgDdlAtomicityMiniClusterTest, TestTableCacheAfterTxnVerification) {
 }
 
 // Test that the schema verification works correctly for partition tables and its children.
-TEST_F(PgDdlAtomicityTest, TestPartitionedTableSchemaVerification) {
+TEST_F(PgDdlDisableTest, TestPartitionedTableSchemaVerification) {
   auto conn = ASSERT_RESULT(Connect());
   auto client = ASSERT_RESULT(cluster_->CreateClient());
   // Set report_ysql_ddl_txn_status_to_master to false, so that we can test the schema verification
