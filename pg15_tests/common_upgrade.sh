@@ -17,22 +17,28 @@ pg11_enable_db_catalog_flag="allowed_preview_flags_csv=ysql_enable_db_catalog_ve
 
 # Downloads, runs, and pushds the directory for pg11.
 # Sets $pg11path to the pg11 directory.
+# Linux:
+# https://s3.us-west-2.amazonaws.com/uploads.dev.yugabyte.com/local-provider-test/2024.2.0.0/yugabyte-2024.2.0.0-957e0756c1234079d7bda1cee74d468e7157f11e-release-clang17-centos-x86_64.tar.gz
+# MacOS:
+# https://s3.us-west-2.amazonaws.com/uploads.dev.yugabyte.com/local-provider-test/2024.2.0.0/yugabyte-2024.2.0.0-957e0756c1234079d7bda1cee74d468e7157f11e-release-clang-darwin-arm64.tar.gz
+# GETTING:
+# https://s3.us-west-2.amazonaws.com/uploads.dev.yugabyte.com/local-provider-test/2024.2.0.0/yugabyte-2024.2.0.0-957e0756c1234079d7bda1cee74d468e7157f11e-clang-darwin-arm64.tar.gz
 run_and_pushd_pg11() {
   prefix="/tmp"
-  ybversion_pg11="2024.1.2.0"
-  ybbuild="b77"
+  ybversion_pg11="2024.2.0.0"
+  ybbuild="957e0756c1234079d7bda1cee74d468e7157f11e"
   if [[ $OSTYPE = linux* ]]; then
-    arch="linux-x86_64"
+    arch="release-clang17-centos-x86_64"
     tarbin="tar"
   fi
   if [[ $OSTYPE = darwin* ]]; then
-    arch="darwin-x86_64"
+    arch="release-clang-darwin-arm64"
     tarbin="gtar"
   fi
   ybfilename_pg11="yugabyte-$ybversion_pg11-$ybbuild-$arch.tar.gz"
 
   if [ ! -f "$prefix"/"$ybfilename_pg11" ]; then
-    curl "https://downloads.yugabyte.com/releases/$ybversion_pg11/$ybfilename_pg11" \
+    curl "https://s3.us-west-2.amazonaws.com/uploads.dev.yugabyte.com/local-provider-test/$ybversion_pg11/$ybfilename_pg11" \
       -o "$prefix"/"$ybfilename_pg11"
   fi
 
