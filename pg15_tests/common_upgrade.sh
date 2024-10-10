@@ -17,12 +17,6 @@ pg11_enable_db_catalog_flag="allowed_preview_flags_csv=ysql_enable_db_catalog_ve
 
 # Downloads, runs, and pushds the directory for pg11.
 # Sets $pg11path to the pg11 directory.
-# Linux:
-# https://s3.us-west-2.amazonaws.com/uploads.dev.yugabyte.com/local-provider-test/2024.2.0.0/yugabyte-2024.2.0.0-957e0756c1234079d7bda1cee74d468e7157f11e-release-clang17-centos-x86_64.tar.gz
-# MacOS:
-# https://s3.us-west-2.amazonaws.com/uploads.dev.yugabyte.com/local-provider-test/2024.2.0.0/yugabyte-2024.2.0.0-957e0756c1234079d7bda1cee74d468e7157f11e-release-clang-darwin-arm64.tar.gz
-# GETTING:
-# https://s3.us-west-2.amazonaws.com/uploads.dev.yugabyte.com/local-provider-test/2024.2.0.0/yugabyte-2024.2.0.0-957e0756c1234079d7bda1cee74d468e7157f11e-clang-darwin-arm64.tar.gz
 run_and_pushd_pg11() {
   prefix="/tmp"
   ybversion_pg11="2024.2.0.0"
