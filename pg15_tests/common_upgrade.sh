@@ -19,8 +19,8 @@ pg11_enable_db_catalog_flag="allowed_preview_flags_csv=ysql_enable_db_catalog_ve
 # Sets $pg11path to the pg11 directory.
 run_and_pushd_pg11() {
   prefix="/tmp"
-  ybversion_pg11="2.20.2.2"
-  ybbuild="b1"
+  ybversion_pg11="2024.1.2.0"
+  ybbuild="b77"
   if [[ $OSTYPE = linux* ]]; then
     arch="linux-x86_64"
     tarbin="tar"
