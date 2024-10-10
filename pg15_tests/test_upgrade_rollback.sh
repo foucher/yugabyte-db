@@ -25,7 +25,8 @@ build/latest/bin/yb-admin --init_master_addrs=127.0.0.200:7100 list_tables inclu
 # Roll back
 # Restart node 2 tserver as PG11
 pushd $pg11path
-yb_ctl restart_node 2
+yb_ctl restart_node 2 --tserver_flags="$common_tserver_flags,$pg11_enable_db_catalog_flag" \
+  --master_flags="$pg11_enable_db_catalog_flag"
 popd
 # Issue the rollback RPC
 echo rollback starting at $(date +"%r")
