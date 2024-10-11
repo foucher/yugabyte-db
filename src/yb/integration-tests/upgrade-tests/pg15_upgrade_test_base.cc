@@ -55,18 +55,10 @@ Status Pg15UpgradeTestBase::FinalizeUpgradeFromMixedMode() {
     RETURN_NOT_OK(
         RestartTServerInCurrentVersion(*tserver, /*wait_for_cluster_to_stabilize=*/false));
   }
-  LOG(INFO) << "TFTFA";
-  sleep(3);
-  cluster_->AssertNoCrashes();
 
   RETURN_NOT_OK(WaitForClusterToStabilize());
-  LOG(INFO) << "TFTFA: BEFORE CRASH";
-  cluster_->AssertNoCrashes();
-  LOG(INFO) << "TFTFA: NO CRASH YET";
 
   RETURN_NOT_OK(UpgradeTestBase::FinalizeUpgrade());
-  LOG(INFO) << "TFTFA";
-  cluster_->AssertNoCrashes();
 
   return Status::OK();
 }

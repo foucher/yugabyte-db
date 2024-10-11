@@ -486,25 +486,17 @@ Status UpgradeTestBase::PerformYsqlUpgrade() {
 
 Status UpgradeTestBase::FinalizeUpgrade() {
   LOG(INFO) << "Finalizing upgrade";
-  LOG(INFO) << "TFTFA";
-  sleep(3);
 
   RETURN_NOT_OK_PREPEND(
       FinalizeYsqlMajorVersionUpgrade(), "Failed to run ysql major version upgrade");
-  LOG(INFO) << "TFTFA";
-  sleep(3);
 
   RETURN_NOT_OK_PREPEND(PromoteAutoFlags(), "Failed to promote AutoFlags");
-  LOG(INFO) << "TFTFA";
-  sleep(3);
 
   RETURN_NOT_OK_PREPEND(PerformYsqlUpgrade(), "Failed to perform ysql upgrade");
-  LOG(INFO) << "TFTFA";
 
   // Set the current version bin path for the cluster, so that any newly added nodes get started on
   // the new version.
   cluster_->SetDaemonBinPath(current_version_bin_path_);
-  LOG(INFO) << "TFTFA";
 
   return Status::OK();
 }

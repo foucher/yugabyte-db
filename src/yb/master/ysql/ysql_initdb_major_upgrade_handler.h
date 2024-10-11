@@ -59,6 +59,8 @@ class YsqlInitDBAndMajorUpgradeHandler {
 
   void RunMajorVersionUpgrade(const LeaderEpoch& epoch);
 
+  Status UpdateCatalogVersions(const LeaderEpoch& epoch);
+
   Status RunMajorVersionCatalogUpgrade(const LeaderEpoch& epoch);
 
   // Runs the initdb process to create the initial ysql sys catalog and snapshot the sys_catalog if
@@ -81,8 +83,6 @@ class YsqlInitDBAndMajorUpgradeHandler {
   Status RunRollbackMajorVersionUpgrade(const LeaderEpoch& epoch);
 
   Status ResetNextVerInitdbStatus(const LeaderEpoch& epoch);
-
-  Status UpdateCatalogVersions(const LeaderEpoch& epoch);
 
   // Get the address to a live tserver process that is closest to the master.
   Result<std::string> GetClosestLiveTserverAddress();

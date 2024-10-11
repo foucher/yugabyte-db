@@ -193,17 +193,14 @@ TEST_F(Pg15UpgradeTest, Schemas) {
   // DETAIL:  The pg_yb_catalog_version table is not in per-database catalog version mode.
   // HINT:  Fix pg_yb_catalog_version table to per-database catalog version mode.
   // (This is before anything upgrade-related occurs)
-  LOG(INFO) << "TFTFA";
   ASSERT_OK(ExecuteStatements(
       {Format("CREATE TABLE $0.$1 (a INT)", kPublic, kPublicTable),
        Format("CREATE SCHEMA $0", kSchemaA),
        Format("CREATE TABLE $0.$1 (a INT)", kSchemaA, kSchemaATable),
        Format("CREATE TABLE $0 (a INT)", kDefaultTable)}));
 
-  LOG(INFO) << "TFTFA";
   ASSERT_OK(UpgradeClusterToMixedMode());
 
-  LOG(INFO) << "TFTFA";
   auto check_tables = [&](pgwrapper::PGConn& conn) {
     const auto results = ASSERT_RESULT(conn.FetchRows<std::string>(kGetTables));
     ASSERT_EQ(results.size(), 3);
@@ -221,23 +218,19 @@ TEST_F(Pg15UpgradeTest, Schemas) {
   {
     auto conn = ASSERT_RESULT(CreateConnToTs(kMixedModeTserverPg15));
     ASSERT_NO_FATALS(check_tables(conn));
-    LOG(INFO) << "TFTFA";
   }
   {
     auto conn = ASSERT_RESULT(CreateConnToTs(kMixedModeTserverPg11));
     ASSERT_NO_FATALS(check_tables(conn));
-    LOG(INFO) << "TFTFA: BEFORE CRASH";
   }
 
   ASSERT_OK(FinalizeUpgradeFromMixedMode());
-  LOG(INFO) << "TFTFA: After Crash";
 
   // Check the tables from a random tserver
   {
     auto conn = ASSERT_RESULT(cluster_->ConnectToDB());
     ASSERT_NO_FATALS(check_tables(conn));
   }
-  LOG(INFO) << "TFTFA";
 
   // Create a new schema and tables
   ASSERT_OK(ExecuteStatements(
@@ -245,14 +238,11 @@ TEST_F(Pg15UpgradeTest, Schemas) {
        Format("CREATE TABLE $0.$1 (a INT)", kPublic, kPublicTable2),
        Format("CREATE TABLE $0.$1 (a INT)", kSchemaB, kSchemaBTable),
        Format("CREATE TABLE $0 (a INT)", kDefaultTable2)}));
-  LOG(INFO) << "TFTFA";
 
   // Check the new tables from a random tserver
   {
     auto conn = ASSERT_RESULT(cluster_->ConnectToDB());
-    LOG(INFO) << "TFTFA";
     const auto results = ASSERT_RESULT(conn.FetchRows<std::string>(kGetTables));
-    LOG(INFO) << "TFTFA";
     ASSERT_EQ(results.size(), 6);
     int idx = 0;
     ASSERT_STR_CONTAINS(results[idx++], Format("$0.$1", kPublic, kDefaultTable));
@@ -261,7 +251,6 @@ TEST_F(Pg15UpgradeTest, Schemas) {
     ASSERT_STR_CONTAINS(results[idx++], Format("$0.$1", kPublic, kPublicTable2));
     ASSERT_STR_CONTAINS(results[idx++], Format("$0.$1", kSchemaA, kSchemaATable));
     ASSERT_STR_CONTAINS(results[idx++], Format("$0.$1", kSchemaB, kSchemaBTable));
-    LOG(INFO) << "TFTFA";
 
     // Check that each table can be selected from (proving it's more than just an entry in pg_class)
     const auto joined_rows = ASSERT_RESULT(conn.FetchRow<pgwrapper::PGUint64>(
@@ -269,7 +258,6 @@ TEST_F(Pg15UpgradeTest, Schemas) {
                kSchemaA, kSchemaATable, kSchemaB, kSchemaBTable,
                kDefaultTable, kDefaultTable2, kPublicTable, kPublicTable2)));
     ASSERT_EQ(joined_rows, 0);
-    LOG(INFO) << "TFTFA";
   }
 }
 
