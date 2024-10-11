@@ -13,24 +13,26 @@ common_pg15_flags="TEST_always_return_consensus_info_for_succeeded_rpc=false,pg_
 # implemented.
 common_tserver_flags='"ysql_pg_conf_csv=yb_enable_expression_pushdown=false"'
 
+pg11_enable_db_catalog_flag="allowed_preview_flags_csv=ysql_enable_db_catalog_version_mode,ysql_enable_db_catalog_version_mode=true"
+
 # Downloads, runs, and pushds the directory for pg11.
 # Sets $pg11path to the pg11 directory.
 run_and_pushd_pg11() {
   prefix="/tmp"
-  ybversion_pg11="2024.2.0.0"
-  ybbuild="957e0756c1234079d7bda1cee74d468e7157f11e"
+  ybversion_pg11="2.20.2.2"
+  ybbuild="b1"
   if [[ $OSTYPE = linux* ]]; then
-    arch="release-clang17-centos-x86_64"
+    arch="linux-x86_64"
     tarbin="tar"
   fi
   if [[ $OSTYPE = darwin* ]]; then
-    arch="release-clang-darwin-arm64"
+    arch="darwin-x86_64"
     tarbin="gtar"
   fi
   ybfilename_pg11="yugabyte-$ybversion_pg11-$ybbuild-$arch.tar.gz"
 
   if [ ! -f "$prefix"/"$ybfilename_pg11" ]; then
-    curl "https://s3.us-west-2.amazonaws.com/uploads.dev.yugabyte.com/local-provider-test/$ybversion_pg11/$ybfilename_pg11" \
+    curl "https://downloads.yugabyte.com/releases/$ybversion_pg11/$ybfilename_pg11" \
       -o "$prefix"/"$ybfilename_pg11"
   fi
 
@@ -42,7 +44,15 @@ run_and_pushd_pg11() {
 
   pg11path="$prefix/yugabyte-$ybversion_pg11"
   pushd "$pg11path"
-  yb_ctl_destroy_create --rf=3 --tserver_flags="$common_tserver_flags"
+  yb_ctl_destroy_create --rf=3
+  ysqlsh <<EOT
+  SET yb_non_ddl_txn_for_sys_tables_allowed=true;
+  SELECT yb_fix_catalog_version_table(true);
+  SET yb_non_ddl_txn_for_sys_tables_allowed = false;
+EOT
+  yb_ctl restart \
+  --tserver_flags="$common_tserver_flags,$pg11_enable_db_catalog_flag" \
+  --master_flags="$pg11_enable_db_catalog_flag"
 }
 
 upgrade_masters() {
