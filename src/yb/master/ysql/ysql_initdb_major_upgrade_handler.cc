@@ -152,8 +152,20 @@ Status YsqlInitDBAndMajorUpgradeHandler::InitDBAndSnapshotSysCatalog(
   return Status::OK();
 }
 
+// TODO: Ordering of this function.
+Status YsqlInitDBAndMajorUpgradeHandler::UpdateCatalogVersions(const LeaderEpoch& epoch) {
+  // TODO: Switch it to TruncateTable but need a YB client
+  RETURN_NOT_OK(sys_catalog_.DeleteAllYsqlCatalogTableRows({kPgYbCatalogVersionTableId}, epoch.leader_term));
+  RETURN_NOT_OK(sys_catalog_.CopyPgsqlTables({kPgYbCatalogVersionTableIdPg11}, {kPgYbCatalogVersionTableId}, epoch.leader_term));
+  return Status::OK();
+}
+
 void YsqlInitDBAndMajorUpgradeHandler::RunMajorVersionUpgrade(const LeaderEpoch& epoch) {
   auto status = RunMajorVersionCatalogUpgrade(epoch);
+  if (status.ok()) {
+    // TODO: Warn vs. whatever other error handling logic should be happening.
+    WARN_NOT_OK(UpdateCatalogVersions(epoch), "Failed to update catalog versions");
+  }
   WARN_NOT_OK(
       MajorVersionCatalogUpgradeFinished(status, epoch), "Failed to run major version upgrade");
 }

@@ -1024,11 +1024,11 @@ void TabletServer::SetYsqlDBCatalogVersions(
         // current version has somehow gone backwards which isn't expected. Crash this tserver to
         // sync up with master again. Do so with RandomUniformInt to reduce the chance that all
         // tservers are crashed at the same time.
-        auto new_version_ignored_count =
-          RandomUniformInt<uint32_t>(FLAGS_ysql_min_new_version_ignored_count,
-                                     FLAGS_ysql_min_new_version_ignored_count + 180);
-        (existing_entry.new_version_ignored_count >= new_version_ignored_count ?
-         LOG(FATAL) : LOG(DFATAL))
+        // auto new_version_ignored_count =
+        //   RandomUniformInt<uint32_t>(FLAGS_ysql_min_new_version_ignored_count,
+        //                              FLAGS_ysql_min_new_version_ignored_count + 180);
+        //(existing_entry.new_version_ignored_count >= new_version_ignored_count ?
+         LOG(FATAL)// : LOG(DFATAL))
             << "Ignoring ysql db " << db_oid
             << " catalog version update: new version too old. "
             << "New: " << new_version << ", Old: " << existing_entry.current_version

@@ -973,13 +973,22 @@ Status SysCatalogTable::ReadYsqlDBCatalogVersionImpl(
     uint64_t* catalog_version,
     uint64_t* last_breaking_version,
     DbOidToCatalogVersionMap* versions) {
-  return ReadWithRestarts(
+  auto ret = ReadWithRestarts(
       [this, ysql_catalog_table_id, db_oid, catalog_version, last_breaking_version, versions](
           const ReadHybridTime& read_ht, HybridTime* read_restart_ht) -> Status {
         return SysCatalogTable::ReadYsqlDBCatalogVersionImplWithReadTime(
             ysql_catalog_table_id, db_oid, read_ht, read_restart_ht, catalog_version,
             last_breaking_version, versions);
       });
+  if (!versions) {
+    return ret;
+  }
+  std::string s;
+  for (auto entry : *versions) {
+    s += Format("{db_oid: $0, version: $1}, ", entry.first, entry.second.current_version);
+  }
+  LOG(INFO) << s;
+  return ret;
 }
 
 Status SysCatalogTable::ReadYsqlDBCatalogVersionImplWithReadTime(

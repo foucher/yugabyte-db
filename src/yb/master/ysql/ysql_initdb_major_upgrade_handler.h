@@ -82,6 +82,8 @@ class YsqlInitDBAndMajorUpgradeHandler {
 
   Status ResetNextVerInitdbStatus(const LeaderEpoch& epoch);
 
+  Status UpdateCatalogVersions(const LeaderEpoch& epoch);
+
   // Get the address to a live tserver process that is closest to the master.
   Result<std::string> GetClosestLiveTserverAddress();
 
