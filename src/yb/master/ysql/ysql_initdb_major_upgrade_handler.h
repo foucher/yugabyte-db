@@ -59,6 +59,8 @@ class YsqlInitDBAndMajorUpgradeHandler {
 
   void RunMajorVersionUpgrade(const LeaderEpoch& epoch);
 
+  Status RunMajorVersionUpgradeImpl(const LeaderEpoch& epoch);
+
   Status UpdateCatalogVersions(const LeaderEpoch& epoch);
 
   Status RunMajorVersionCatalogUpgrade(const LeaderEpoch& epoch);
