@@ -29,9 +29,10 @@ run_and_pushd_pg11() {
     tarbin="gtar"
   fi
   ybfilename_pg11="yugabyte-$ybversion_pg11-$ybbuild-$arch.tar.gz"
+  ybfilename_pg11_web="yugabyte-$ybversion_pg11-$ybhash-$arch.tar.gz"
 
   if [ ! -f "$prefix"/"$ybfilename_pg11" ]; then
-    curl "https://s3.us-west-2.amazonaws.com/uploads.dev.yugabyte.com/local-provider-test/$ybversion_pg11-$ybbuild/$ybfilename_pg11" \
+    curl "https://s3.us-west-2.amazonaws.com/uploads.dev.yugabyte.com/local-provider-test/$ybversion_pg11-$ybbuild/$ybfilename_pg11_web" \
       -o "$prefix"/"$ybfilename_pg11"
   fi
 
