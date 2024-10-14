@@ -220,6 +220,7 @@ UpgradeTestBase::UpgradeTestBase(const std::string& from_version)
 }
 
 void UpgradeTestBase::SetUp() {
+  // TODO: Convert this to a minimum version check with a <
   if (old_version_info_.version != kBuild_2024_2_0_0) {
     test_skipped_ = true;
     GTEST_SKIP() << "PG15 upgrade is only supported from version " << kBuild_2024_2_0_0;

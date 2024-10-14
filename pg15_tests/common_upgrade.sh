@@ -18,7 +18,8 @@ common_tserver_flags='"ysql_pg_conf_csv=yb_enable_expression_pushdown=false"'
 run_and_pushd_pg11() {
   prefix="/tmp"
   ybversion_pg11="2024.2.0.0"
-  ybbuild="957e0756c1234079d7bda1cee74d468e7157f11e"
+  ybbuild="b58"
+  ybhash="d78199a0d53b4ab2bd86e6805a46a38fad783ba2"
   if [[ $OSTYPE = linux* ]]; then
     arch="release-clang17-centos-x86_64"
     tarbin="tar"
@@ -30,7 +31,7 @@ run_and_pushd_pg11() {
   ybfilename_pg11="yugabyte-$ybversion_pg11-$ybbuild-$arch.tar.gz"
 
   if [ ! -f "$prefix"/"$ybfilename_pg11" ]; then
-    curl "https://s3.us-west-2.amazonaws.com/uploads.dev.yugabyte.com/local-provider-test/$ybversion_pg11/$ybfilename_pg11" \
+    curl "https://s3.us-west-2.amazonaws.com/uploads.dev.yugabyte.com/local-provider-test/$ybversion_pg11-$ybbuild/$ybfilename_pg11" \
       -o "$prefix"/"$ybfilename_pg11"
   fi
 
