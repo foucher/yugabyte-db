@@ -359,7 +359,7 @@ TEST_F(Pg15UpgradeTest, Template1) {
   {
     auto conn = ASSERT_RESULT(cluster_->ConnectToDB("template1"));
     ASSERT_OK(conn.Execute("CREATE FUNCTION template_function() "
-                           "RETURNS INT AS $$ SELECT 11 $$ LANGUAGE sql;"));
+                           "RETURNS INT AS $q$ SELECT 11; $q$ LANGUAGE sql;"));
   }
   ASSERT_OK(UpgradeClusterToMixedMode());
 

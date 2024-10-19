@@ -40,6 +40,9 @@
 #include "pg_backup_db.h"
 #include "pg_backup_utils.h"
 
+/* YB includes */
+#include "catalog/pg_proc_d.h"
+
 #define TEXT_DUMP_HEADER "--\n-- YSQL database dump\n--\n\n"
 #define TEXT_DUMPALL_HEADER "--\n-- YSQL database cluster dump\n--\n\n"
 
@@ -3629,9 +3632,11 @@ _printTocEntry(ArchiveHandle *AH, TocEntry *te, bool isData)
 			 * catalog. So, as a hack, by setting AH->outputKind to
 			 * OUTPUT_OTHERDATA, ahprintf will send each statement to the
 			 * backend separately, avoiding the limitation.
+			 *
+			 * TRYING: 					AH->currentTE->catalogId.tableoid == 1255 ==> use old method
 			 */
 			ArchiverOutput yb_saved_output_kind = AH->outputKind;
-			if (AH->outputKind == OUTPUT_SQLCMDS)
+			if (AH->outputKind == OUTPUT_SQLCMDS && !(AH->currentTE && AH->currentTE->catalogId.tableoid == ProcedureRelationId))
 			{
 				static const char yb_zero_sqlparse[sizeof(AH->sqlparse)];
 				if (memcmp(&AH->sqlparse, &yb_zero_sqlparse,
