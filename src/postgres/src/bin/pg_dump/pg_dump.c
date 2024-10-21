@@ -3321,13 +3321,13 @@ dumpDatabase(Archive *fout)
 		appendPQExpBufferStr(loOutQry,
 							 "TRUNCATE pg_catalog.pg_largeobject;\n");
 		appendPQExpBufferStr(loOutQry, loHorizonQry->data);
-/*
+
 		ArchiveEntry(fout, nilCatalogId, createDumpId(),
 					 ARCHIVE_OPTS(.tag = "pg_largeobject",
 								  .description = "pg_largeobject",
 								  .section = SECTION_PRE_DATA,
 								  .createStmt = loOutQry->data));
-*/
+
 		PQclear(lo_res);
 
 		destroyPQExpBuffer(loFrozenQry);
