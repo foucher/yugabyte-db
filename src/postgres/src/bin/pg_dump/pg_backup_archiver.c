@@ -41,7 +41,7 @@
 #include "pg_backup_utils.h"
 
 /* YB includes */
-#include "catalog/pg_proc_d.h"
+#include "catalog/pg_class_d.h"
 
 #define TEXT_DUMP_HEADER "--\n-- YSQL database dump\n--\n\n"
 #define TEXT_DUMPALL_HEADER "--\n-- YSQL database cluster dump\n--\n\n"
@@ -3629,14 +3629,14 @@ _printTocEntry(ArchiveHandle *AH, TocEntry *te, bool isData)
 			 * When multiple statements are sent in the same request, they're
 			 * executed inside an implicit transaction. YugabyteDB doesn't
 			 * currently support mixing DDLs with modifications to the PG
-			 * catalog. So, as a hack, by setting AH->outputKind to
-			 * OUTPUT_OTHERDATA, ahprintf will send each statement to the
+			 * catalog. So, as a hack for table creation, we set AH->outputKind
+			 * to OUTPUT_OTHERDATA, so that ahprintf sends each statement to the
 			 * backend separately, avoiding the limitation.
-			 *
-			 * TRYING: 					AH->currentTE->catalogId.tableoid == 1255 ==> use old method
 			 */
 			ArchiverOutput yb_saved_output_kind = AH->outputKind;
-			if (AH->outputKind == OUTPUT_SQLCMDS && !(AH->currentTE && AH->currentTE->catalogId.tableoid == ProcedureRelationId))
+			if (AH->outputKind == OUTPUT_SQLCMDS && ((AH->currentTE &&
+				AH->currentTE->catalogId.tableoid == RelationRelationId) ||
+				(AH->currentTE && AH->currentTE->desc && strcmp(AH->currentTE->desc, "pg_largeobject") == 0)))
 			{
 				static const char yb_zero_sqlparse[sizeof(AH->sqlparse)];
 				if (memcmp(&AH->sqlparse, &yb_zero_sqlparse,
