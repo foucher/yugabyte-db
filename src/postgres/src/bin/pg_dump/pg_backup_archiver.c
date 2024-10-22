@@ -3633,26 +3633,31 @@ _printTocEntry(ArchiveHandle *AH, TocEntry *te, bool isData)
 			 * to OUTPUT_OTHERDATA, so that ahprintf sends each statement to the
 			 * backend separately, avoiding the limitation.
 			 */
-			ArchiverOutput yb_saved_output_kind = AH->outputKind;
-			if (AH->outputKind == OUTPUT_SQLCMDS && AH->currentTE &&
-				AH->currentTE->catalogId.tableoid == RelationRelationId)
+			if (AH->currentTE &&
+				AH->currentTE->catalogId.tableoid == RelationRelationId &&
+				AH->outputKind == OUTPUT_SQLCMDS)
 			{
+				ArchiverOutput yb_saved_output_kind = AH->outputKind;
 				static const char yb_zero_sqlparse[sizeof(AH->sqlparse)];
 				if (memcmp(&AH->sqlparse, &yb_zero_sqlparse,
 						   sizeof(AH->sqlparse)) != 0)
 					pg_fatal("AH->sqlparse not 0 before printing definition");
 				AH->outputKind = OUTPUT_OTHERDATA;
+				ahprintf(AH, "%s\n\n", te->defn);
+				/*
+				 * We've ended on a statement boundary or whitespace (after all,
+				 * in upstream Postgres, this sequence of SQL statements is sent
+				 * to the backend as one block), so reset the state of sqlparse,
+				 * which is normally meant to be stitching together strings with
+				 * arbitrary boundaries.
+				 */
+				memset(&AH->sqlparse, 0, sizeof(AH->sqlparse));
+				AH->outputKind = yb_saved_output_kind;
 			}
-			ahprintf(AH, "%s\n\n", te->defn);
-			/*
-			 * We've ended on a statement boundary or whitespace (after all, in
-			 * upstream Postgres, this sequence of SQL statements is sent to the
-			 * backend as one block), so reset the state of sqlparse, which is
-			 * normally meant to be stitching together strings with arbitrary
-			 * boundaries.
-			 */
-			memset(&AH->sqlparse, 0, sizeof(AH->sqlparse));
-			AH->outputKind = yb_saved_output_kind;
+			else
+			{
+				ahprintf(AH, "%s\n\n", te->defn);
+			}
 		}
 	}
 
