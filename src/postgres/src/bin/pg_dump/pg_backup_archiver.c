@@ -3634,9 +3634,8 @@ _printTocEntry(ArchiveHandle *AH, TocEntry *te, bool isData)
 			 * backend separately, avoiding the limitation.
 			 */
 			ArchiverOutput yb_saved_output_kind = AH->outputKind;
-			if (AH->outputKind == OUTPUT_SQLCMDS && ((AH->currentTE &&
-				AH->currentTE->catalogId.tableoid == RelationRelationId) ||
-				(AH->currentTE && AH->currentTE->desc && strcmp(AH->currentTE->desc, "pg_largeobject") == 0)))
+			if (AH->outputKind == OUTPUT_SQLCMDS && AH->currentTE &&
+				AH->currentTE->catalogId.tableoid == RelationRelationId)
 			{
 				static const char yb_zero_sqlparse[sizeof(AH->sqlparse)];
 				if (memcmp(&AH->sqlparse, &yb_zero_sqlparse,
