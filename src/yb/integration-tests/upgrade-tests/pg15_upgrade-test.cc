@@ -359,7 +359,7 @@ TEST_F(Pg15UpgradeTest, Template1) {
   {
     auto conn = ASSERT_RESULT(cluster_->ConnectToDB("template1"));
     ASSERT_OK(conn.Execute("CREATE FUNCTION template_function() "
-                           "RETURNS INT AS $q$ SELECT 11; $q$ LANGUAGE sql;"));
+                           "RETURNS INT AS $$ SELECT 11 $$ LANGUAGE sql;"));
   }
   ASSERT_OK(UpgradeClusterToMixedMode());
 
@@ -376,6 +376,34 @@ TEST_F(Pg15UpgradeTest, Template1) {
   ASSERT_OK(ExecuteStatement("CREATE DATABASE testdb"));
   ASSERT_NO_FATALS(check_function("template1", 0));
   ASSERT_NO_FATALS(check_function("testdb", 0));
+}
+
+TEST_F(Pg15UpgradeTest, FunctionWithSemicolons) {
+  {
+    auto conn = ASSERT_RESULT(cluster_->ConnectToDB());
+    ASSERT_OK(conn.Execute(R"(CREATE FUNCTION pg11_function() RETURNS text AS $$
+                              BEGIN
+                                  RETURN 'Hello from pg11';
+                              END;
+                              $$ LANGUAGE plpgsql;)"));
+  }
+  ASSERT_OK(UpgradeClusterToMixedMode());
+
+  auto check_function = [this](const size_t tserver) {
+    auto conn = ASSERT_RESULT(CreateConnToTs(tserver));
+    auto result = ASSERT_RESULT(conn.FetchRow<std::string>("SELECT pg11_function()"));
+    ASSERT_EQ(result, "Hello from pg11");
+  };
+  ASSERT_NO_FATALS(check_function(kMixedModeTserverPg15));
+  ASSERT_NO_FATALS(check_function(kMixedModeTserverPg11));
+
+  ASSERT_OK(FinalizeUpgradeFromMixedMode());
+
+  {
+    auto conn = ASSERT_RESULT(cluster_->ConnectToDB());
+    auto result = ASSERT_RESULT(conn.FetchRow<std::string>("SELECT pg11_function()"));
+    ASSERT_EQ(result, "Hello from pg11");
+  }
 }
 
 }  // namespace yb
