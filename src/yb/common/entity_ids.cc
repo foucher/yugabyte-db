@@ -28,12 +28,6 @@ using boost::uuids::uuid;
 
 namespace yb {
 
-namespace {
-
-TableId GetPgsqlTableIdPg11(const uint32_t database_oid, const uint32_t table_oid);
-
-}  // namespace
-
 static constexpr int kUuidVersion = 3; // Repurpose old name-based UUID v3 to embed Postgres oids.
 
 const uint32_t kPgProcTableOid = 1255;  // Hardcoded for pg_proc. (in pg_proc.h)
@@ -123,10 +117,6 @@ TableId GetPgsqlTableIdInternal(
   return UuidToString(&id);
 }
 
-TableId GetPgsqlTableIdPg11(const uint32_t database_oid, const uint32_t table_oid) {
-  return GetPgsqlTableIdInternal(database_oid, table_oid, IsPg15::kFalse);
-}
-
 } // namespace
 
 NamespaceId GetPgsqlNamespaceId(const uint32_t database_oid) {
@@ -137,6 +127,10 @@ NamespaceId GetPgsqlNamespaceId(const uint32_t database_oid) {
 
 TableId GetPgsqlTableId(const uint32_t database_oid, const uint32_t table_oid) {
   return GetPgsqlTableIdInternal(database_oid, table_oid, IsPg15::kTrue);
+}
+
+TableId GetPgsqlTableIdPg11(const uint32_t database_oid, const uint32_t table_oid) {
+  return GetPgsqlTableIdInternal(database_oid, table_oid, IsPg15::kFalse);
 }
 
 TablegroupId GetPgsqlTablegroupId(const uint32_t database_oid, const uint32_t tablegroup_oid) {

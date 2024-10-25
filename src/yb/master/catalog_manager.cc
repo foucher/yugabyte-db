@@ -9921,27 +9921,11 @@ Status CatalogManager::GetYsqlCatalogVersion(uint64_t* catalog_version,
 Status CatalogManager::GetYsqlDBCatalogVersion(uint32_t db_oid,
                                                uint64_t* catalog_version,
                                                uint64_t* last_breaking_version) {
-  // When a yb-master goes through the upgrade process from PG11 to PG15, the process begins before
-  // PG15 initdb has been run, so there is no PG15 pg_yb_catalog_version table at all. Even after
-  // PG15 initdb starts, no user-initiated DDLs are permitted during the upgrade, and no PG15
-  // tservers may start until initdb + pg_restore has occurred. Therefore, the PG11 catalog will be
-  // unchanged, and the fixed PG11 catalog version is the only relevant catalog version during the
-  // upgrade. Note that pg_restore will be the sole writer to the PG15 catalog during the upgrade,
-  // using one postgres process.
-  //
-  // After the entire cluster has been upgraded to PG15, to allow DDLs once again, restart the
-  // masters without the upgrade flag. A refinement would be to not require a restart to switch out
-  // of upgrade mode, in which case we might need to do a one-time bump of the PG15
-  // pg_yb_catalog_version number.
-  TableId table_id;
-  if (FLAGS_TEST_online_pg11_to_pg15_upgrade) {
-    table_id = kPgYbCatalogVersionTableIdPg11;
-  } else {
-    table_id = kPgYbCatalogVersionTableId;
-  }
-  auto table_info = GetTableInfo(table_id);
+  // TODO: Need to fix this table_info business which is now looking at the wrong table.
+  // Like maybe I should dump stack traces when *this* has a PG15 UUID.
+  auto table_info = GetTableInfo(kPgYbCatalogVersionTableId);
   if (table_info != nullptr) {
-    RETURN_NOT_OK(sys_catalog_->ReadYsqlDBCatalogVersion(table_id,
+    RETURN_NOT_OK(sys_catalog_->ReadYsqlDBCatalogVersion(kPgYbCatalogVersionTableId,
                                                          db_oid,
                                                          catalog_version,
                                                          last_breaking_version));
@@ -9968,16 +9952,9 @@ Status CatalogManager::GetYsqlDBCatalogVersion(uint32_t db_oid,
 }
 
 Status CatalogManager::GetYsqlAllDBCatalogVersionsImpl(DbOidToCatalogVersionMap* versions) {
-  // See comment in GetYsqlDBCatalogVersion.
-  TableId table_id;
-  if (FLAGS_TEST_online_pg11_to_pg15_upgrade) {
-    table_id = kPgYbCatalogVersionTableIdPg11;
-  } else {
-    table_id = kPgYbCatalogVersionTableId;
-  }
-  auto table_info = GetTableInfo(table_id);
+  auto table_info = GetTableInfo(kPgYbCatalogVersionTableId);
   if (table_info != nullptr) {
-    RETURN_NOT_OK(sys_catalog_->ReadYsqlAllDBCatalogVersions(table_id, versions));
+    RETURN_NOT_OK(sys_catalog_->ReadYsqlAllDBCatalogVersions(kPgYbCatalogVersionTableId, versions));
   } else {
     versions->clear();
   }

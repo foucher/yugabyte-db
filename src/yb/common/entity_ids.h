@@ -52,6 +52,7 @@ NamespaceId GetPgsqlNamespaceId(uint32_t database_oid);
 
 // Get YB table id for a Postgres table.
 TableId GetPgsqlTableId(uint32_t database_oid, uint32_t table_oid);
+TableId GetPgsqlTableIdPg11(uint32_t database_oid, uint32_t table_oid);
 
 // Get YB tablegroup id for a Postgres tablegroup.
 TablegroupId GetPgsqlTablegroupId(uint32_t database_oid, uint32_t tablegroup_oid);

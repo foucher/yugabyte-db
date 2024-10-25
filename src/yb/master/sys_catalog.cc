@@ -147,6 +147,7 @@ DECLARE_bool(create_initial_sys_catalog_snapshot);
 DECLARE_int32(master_discovery_timeout_ms);
 DECLARE_int32(retryable_request_timeout_secs);
 DECLARE_bool(TEST_check_catalog_version_overflow);
+DECLARE_bool(TEST_online_pg11_to_pg15_upgrade);
 
 DEFINE_UNKNOWN_int32(sys_catalog_write_timeout_ms, 60000, "Timeout for writes into system catalog");
 DEFINE_UNKNOWN_uint64(copy_tables_batch_bytes, 500_KB,
@@ -1659,7 +1660,7 @@ Result<std::unordered_map<uint32_t, PgTypeInfo>> SysCatalogTable::ReadPgTypeInfo
       }
       return STATUS_FORMAT(
           Corruption,
-          "Could not read $0 column from pg_attribute for databaseoid: $1:", corrupted_col,
+          "Could not read $0 column from pg_attribute for : $1:", corrupted_col,
           database_oid);
     }
 
@@ -1949,7 +1950,7 @@ Result<RelIdToAttributesMap> SysCatalogTable::ReadPgAttributeInfo(
         !attcollation_col) {
       return STATUS_FORMAT(
           Corruption,
-          "Could not read some column(s) from pg_attribute for attrelid $0, databaseoid: $1",
+          "Could not read some column(s) from pg_attribute for attrelid $0, : $1",
           attrelid, database_oid);
     }
 
@@ -2069,7 +2070,28 @@ Result<tablet::TabletPtr> SysCatalogTable::Tablet() const {
 Result<PgTableReadData> SysCatalogTable::TableReadData(
     const TableId& table_id, const ReadHybridTime& read_ht) const {
   PgTableReadData result;
-  result.table_id = table_id;
+  if (FLAGS_TEST_online_pg11_to_pg15_upgrade) {
+    // TODO: Lint & rewrite this:
+
+    // When a yb-master goes through the upgrade process from PG11 to PG15, the process begins before
+    // PG15 initdb has been run, so there is no PG15 pg_yb_catalog_version table at all. Even after
+    // PG15 initdb starts, no user-initiated DDLs are permitted during the upgrade, and no PG15
+    // tservers may start until initdb + pg_restore has occurred. Therefore, the PG11 catalog will be
+    // unchanged, and the fixed PG11 catalog version is the only relevant catalog version during the
+    // upgrade. Note that pg_restore will be the sole writer to the PG15 catalog during the upgrade,
+    // using one postgres process.
+    //
+    // After the entire cluster has been upgraded to PG15, to allow DDLs once again, restart the
+    // masters without the upgrade flag. A refinement would be to not require a restart to switch out
+    // of upgrade mode, in which case we might need to do a one-time bump of the PG15
+    // pg_yb_catalog_version number.
+
+    uint32_t database_oid = VERIFY_RESULT(GetPgsqlDatabaseOid(table_id));
+    uint32_t table_oid = VERIFY_RESULT(GetPgsqlTableOid(table_id));
+    result.table_id = GetPgsqlTableIdPg11(database_oid, table_oid);
+  } else {
+    result.table_id = table_id;
+  }
   result.tablet = VERIFY_RESULT(Tablet());
   result.table_info = VERIFY_RESULT(result.tablet->metadata()->GetTableInfo(table_id));
   result.read_hybrid_time = read_ht;
