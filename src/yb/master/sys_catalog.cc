@@ -1660,7 +1660,7 @@ Result<std::unordered_map<uint32_t, PgTypeInfo>> SysCatalogTable::ReadPgTypeInfo
       }
       return STATUS_FORMAT(
           Corruption,
-          "Could not read $0 column from pg_attribute for : $1:", corrupted_col,
+          "Could not read $0 column from pg_attribute for databaseoid: $1:", corrupted_col,
           database_oid);
     }
 
@@ -1950,7 +1950,7 @@ Result<RelIdToAttributesMap> SysCatalogTable::ReadPgAttributeInfo(
         !attcollation_col) {
       return STATUS_FORMAT(
           Corruption,
-          "Could not read some column(s) from pg_attribute for attrelid $0, : $1",
+          "Could not read some column(s) from pg_attribute for attrelid $0, databaseoid: $1",
           attrelid, database_oid);
     }
 

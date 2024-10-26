@@ -20,7 +20,6 @@ namespace yb {
 namespace master {
 
 scoped_refptr<TableInfo> TableIndex::FindTableOrNull(const TableId& id) const {
-  // TODO: Does anything that takes a TableId require investigation?
   auto result = tables_.find(id);
   if (result == tables_.end()) {
     return nullptr;
