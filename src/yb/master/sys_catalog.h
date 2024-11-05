@@ -199,6 +199,8 @@ class SysCatalogTable {
 
   Result<tablet::TabletPtr> Tablet() const;
 
+  static Result<TableId> GetCurrentSharedCatalog(const TableId& table_id);
+
   Result<PgTableReadData> TableReadData(
       const TableId& table_id, const ReadHybridTime& read_ht) const;
   Result<PgTableReadData> TableReadData(

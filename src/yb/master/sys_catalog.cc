@@ -2067,31 +2067,28 @@ Result<tablet::TabletPtr> SysCatalogTable::Tablet() const {
   return tablet_peer->shared_tablet_safe();
 }
 
+// TODO: This shouldn't be named "shared" catalog because we use it for at least one DB-specific
+// catalog: pg_class.
+Result<TableId> SysCatalogTable::GetCurrentSharedCatalog(const TableId& table_id) {
+  // TODO: Make this during parts of the state machine? How can I get the state machine state?
+  if (FLAGS_TEST_online_pg11_to_pg15_upgrade) {
+    // When a yb-master goes through the upgrade process from PG11 to PG15, the process begins
+    // before PG15 initdb has been run, so there are no PG15 catalog tables at all.
+    // We therefore utilize PG11 catalog tables while initdb and the catalog upgrade are in
+    // progress. Once the catalog upgrade is complete, for the rest of mixed mode before finalize,
+    // we switch the PG15 catalogs so that they can be exercised and tested.
+    uint32_t database_oid = VERIFY_RESULT(GetPgsqlDatabaseOid(table_id));
+    uint32_t table_oid = VERIFY_RESULT(GetPgsqlTableOid(table_id));
+    return GetPgsqlTableIdPg11(database_oid, table_oid);
+  } else {
+    return table_id;
+  }
+}
+
 Result<PgTableReadData> SysCatalogTable::TableReadData(
     const TableId& table_id, const ReadHybridTime& read_ht) const {
   PgTableReadData result;
-  if (FLAGS_TEST_online_pg11_to_pg15_upgrade) {
-    // TODO: Lint & rewrite this:
-
-    // When a yb-master goes through the upgrade process from PG11 to PG15, the process begins before
-    // PG15 initdb has been run, so there is no PG15 pg_yb_catalog_version table at all. Even after
-    // PG15 initdb starts, no user-initiated DDLs are permitted during the upgrade, and no PG15
-    // tservers may start until initdb + pg_restore has occurred. Therefore, the PG11 catalog will be
-    // unchanged, and the fixed PG11 catalog version is the only relevant catalog version during the
-    // upgrade. Note that pg_restore will be the sole writer to the PG15 catalog during the upgrade,
-    // using one postgres process.
-    //
-    // After the entire cluster has been upgraded to PG15, to allow DDLs once again, restart the
-    // masters without the upgrade flag. A refinement would be to not require a restart to switch out
-    // of upgrade mode, in which case we might need to do a one-time bump of the PG15
-    // pg_yb_catalog_version number.
-
-    uint32_t database_oid = VERIFY_RESULT(GetPgsqlDatabaseOid(table_id));
-    uint32_t table_oid = VERIFY_RESULT(GetPgsqlTableOid(table_id));
-    result.table_id = GetPgsqlTableIdPg11(database_oid, table_oid);
-  } else {
-    result.table_id = table_id;
-  }
+  result.table_id = VERIFY_RESULT(GetCurrentSharedCatalog(table_id));
   result.tablet = VERIFY_RESULT(Tablet());
   result.table_info = VERIFY_RESULT(result.tablet->metadata()->GetTableInfo(table_id));
   result.read_hybrid_time = read_ht;
