@@ -2350,7 +2350,7 @@ Status CatalogManager::ValidateTableReplicationInfo(
 
 Result<shared_ptr<TablespaceIdToReplicationInfoMap>> CatalogManager::GetYsqlTablespaceInfo() {
   auto table_info = GetTableInfo(VERIFY_RESULT(
-      SysCatalogTable::GetCurrentSharedCatalog(kPgTablespaceTableId)));
+      SysCatalogTable::GetCorrectVersionCatalog(kPgTablespaceTableId)));
   if (table_info == nullptr) {
     return STATUS(InternalError, "pg_tablespace table info not found");
   }
@@ -2524,7 +2524,7 @@ Result<shared_ptr<TableToTablespaceIdMap>> CatalogManager::GetYsqlTableToTablesp
                    << nsid << " with error: " << table_tablespace_status.ToString();
     }
 
-    const TableId tablegroup_table_id = VERIFY_RESULT(SysCatalogTable::GetCurrentSharedCatalog(
+    const TableId tablegroup_table_id = VERIFY_RESULT(SysCatalogTable::GetCorrectVersionCatalog(
         GetPgsqlTableId(database_oid, kPgYbTablegroupTableOid)));
     const bool pg_yb_tablegroup_exists =
         VERIFY_RESULT(DoesTableExist(FindTableById(tablegroup_table_id)));
@@ -9924,9 +9924,8 @@ Status CatalogManager::GetYsqlCatalogVersion(uint64_t* catalog_version,
 Status CatalogManager::GetYsqlDBCatalogVersion(uint32_t db_oid,
                                                uint64_t* catalog_version,
                                                uint64_t* last_breaking_version) {
-  // TODO: Maybe I should dump stack traces when *this* has a PG15 UUID.
   auto table_id =
-      VERIFY_RESULT(SysCatalogTable::GetCurrentSharedCatalog(kPgYbCatalogVersionTableId));
+      VERIFY_RESULT(SysCatalogTable::GetCorrectVersionCatalog(kPgYbCatalogVersionTableId));
   auto table_info = GetTableInfo(table_id);
   if (table_info != nullptr) {
     RETURN_NOT_OK(sys_catalog_->ReadYsqlDBCatalogVersion(table_id,
@@ -9957,7 +9956,7 @@ Status CatalogManager::GetYsqlDBCatalogVersion(uint32_t db_oid,
 
 Status CatalogManager::GetYsqlAllDBCatalogVersionsImpl(DbOidToCatalogVersionMap* versions) {
   auto table_id =
-      VERIFY_RESULT(SysCatalogTable::GetCurrentSharedCatalog(kPgYbCatalogVersionTableId));
+      VERIFY_RESULT(SysCatalogTable::GetCorrectVersionCatalog(kPgYbCatalogVersionTableId));
   auto table_info = GetTableInfo(table_id);
   if (table_info != nullptr) {
     RETURN_NOT_OK(sys_catalog_->ReadYsqlAllDBCatalogVersions(table_id, versions));

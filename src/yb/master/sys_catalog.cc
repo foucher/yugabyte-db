@@ -2067,9 +2067,7 @@ Result<tablet::TabletPtr> SysCatalogTable::Tablet() const {
   return tablet_peer->shared_tablet_safe();
 }
 
-// TODO: This shouldn't be named "shared" catalog because we use it for at least one DB-specific
-// catalog: pg_class.
-Result<TableId> SysCatalogTable::GetCurrentSharedCatalog(const TableId& table_id) {
+Result<TableId> SysCatalogTable::GetCorrectVersionCatalog(const TableId& table_id) {
   // TODO: Make this during parts of the state machine? How can I get the state machine state?
   if (FLAGS_TEST_online_pg11_to_pg15_upgrade) {
     // When a yb-master goes through the upgrade process from PG11 to PG15, the process begins
@@ -2085,14 +2083,13 @@ Result<TableId> SysCatalogTable::GetCurrentSharedCatalog(const TableId& table_id
   }
 }
 
-// TODO: Probably want to invert the table_id vs. "actual_table_id".
 Result<PgTableReadData> SysCatalogTable::TableReadData(
-    const TableId& table_id, const ReadHybridTime& read_ht) const {
+    const TableId& original_table_id, const ReadHybridTime& read_ht) const {
   PgTableReadData result;
-  const TableId actual_table_id = VERIFY_RESULT(GetCurrentSharedCatalog(table_id));
-  result.table_id = actual_table_id;
+  const TableId table_id = VERIFY_RESULT(GetCorrectVersionCatalog(original_table_id));
+  result.table_id = table_id;
   result.tablet = VERIFY_RESULT(Tablet());
-  result.table_info = VERIFY_RESULT(result.tablet->metadata()->GetTableInfo(actual_table_id));
+  result.table_info = VERIFY_RESULT(result.tablet->metadata()->GetTableInfo(table_id));
   result.read_hybrid_time = read_ht;
   return result;
 }
