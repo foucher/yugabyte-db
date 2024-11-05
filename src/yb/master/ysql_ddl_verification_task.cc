@@ -133,7 +133,6 @@ GetPgCatalogTableScanIterator(
   cond.set_op(QL_OP_EQUAL);
   cond.add_operands()->mutable_value()->set_uint32_value(oid_value);
   const dockv::KeyEntryValues empty_key_components;
-  LOG(INFO) << "TFTF: " << read_data.schema().ToString();
   docdb::DocPgsqlScanSpec spec(
       read_data.schema(), rocksdb::kDefaultQueryId, empty_key_components, empty_key_components,
       &cond, std::nullopt /* hash_code */, std::nullopt /* max_hash_code */);

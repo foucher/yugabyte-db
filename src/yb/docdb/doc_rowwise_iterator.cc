@@ -118,7 +118,7 @@ void DocRowwiseIterator::InitIterator(
       bound_key_.data().data()[0] != dockv::KeyEntryTypeAsChar::kHighest) {
     DCHECK(bound_key_.AsSlice().starts_with(prefix))
         << "Bound key: " << bound_key_.AsSlice().ToDebugHexString()
-        << ", prefix: " << prefix.ToDebugHexString() << "\n" << GetStackTrace();
+        << ", prefix: " << prefix.ToDebugHexString();
     upperbound_scope_.emplace(bound_key_, db_iter_.get());
   } else {
     DCHECK(!upperbound().empty());
